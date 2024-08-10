@@ -28,7 +28,6 @@ Resultaria numa saída do tipo:
 0000    EMPRESAX    01/01/2024  31/01/2024  11.111.111/0001-91  C100    PART1       55      001 1112    300,00  C170    PRODC       300,00 
 
 Exemplo do arquivo schema-sample1.xml:
-"
 
     <hierarquical-schema name="EFD" version="v1.0">
 	<tables-list>
@@ -68,7 +67,6 @@ Exemplo do arquivo schema-sample1.xml:
 		</table>		
 	</tables-list>
     </hierarquical-schema>
-"
 
 ## Requisitos
 
