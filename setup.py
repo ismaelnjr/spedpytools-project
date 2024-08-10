@@ -5,7 +5,7 @@ with open("README.md", "r") as arq:
     readme = arq.read()
 
 setup(name='spedpyutils',
-    version='0.0.2',
+    version='0.0.3',
     license='MIT License',
     author='Ismael Nascimento',
     long_description=readme,

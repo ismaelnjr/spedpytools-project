@@ -4,6 +4,7 @@ from spedpyutils.biddings.hierarquical_schema import HierarquicalSchema
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
+from tqdm import tqdm
 
 import locale
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -21,7 +22,7 @@ class ArquivoDigitalHandler(object):
         self._arquivo_digital = arq   
 
     def getTable(self, registro_id: str):
-        self.refresh()
+        self.update()
         return self._dataframes[registro_id]
     
     def getAllTables(self) -> OrderedDict:
@@ -33,7 +34,9 @@ class ArquivoDigitalHandler(object):
         cache = {}
         map = self._create_cols_map(self._schema)
              
-        for r in self._extract_content(self._arquivo_digital):
+        for r in tqdm(self._extract_content(self._arquivo_digital), 
+                      desc="processing dataframe", 
+                      colour="RED"):
             
             if r.REG in map.keys():
                 
@@ -115,18 +118,20 @@ class ArquivoDigitalHandler(object):
          
     def to_excel(self, filename):
         try:
-            self.refresh()
+            self.update()
             with pd.ExcelWriter(filename) as writer:
                 # Exportar registros por aba   
-                for key in self._dataframes:
-                    df = self._dataframes[key]      
-                    df.to_excel(writer, index=False, sheet_name=key, engine='openpyxl')
+                for id in tqdm(self._dataframes, 
+                                desc="exporting dataframe", 
+                                colour="RED"):
+                    df = self._dataframes[id]      
+                    df.to_excel(writer, index=False, sheet_name=id, engine='openpyxl')
                                             
         except Exception as e:
             raise RuntimeError(f"Erro não foi possível exportar dados para arquivo: {filename}, erro: {e}")
 
-    def refresh(self, force_reload: bool = False):        
-        if self._dataframes is None or force_reload:
+    def update(self, reload: bool = False):        
+        if self._dataframes is None or reload:
             self._dataframes = self._read_data()
 
     def _load_schema(self, name):

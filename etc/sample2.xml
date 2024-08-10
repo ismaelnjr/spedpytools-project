@@ -1,7 +1,7 @@
 <hierarquical-schema name="Sped-EFD" version="v1.0">
 
 	<tables>
-		<table id="0000" description="Abertura"/>
+		<table id="0000" description="Abertura" index="DT_INI|DT_FIN"/>
 		<table id="0150" description="Parceiro" index="COD_PART" parent="0000"/>		
 		<table id="0200" description="Produtos" index="COD_ITEM" parent="0000" />
 		<table id="C100" description="E_S" parent="0000"/>
