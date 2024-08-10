@@ -1,0 +1,11 @@
+
+
+
+cd /caminho/para/seu/projeto
+rmdir .git /S /Q
+
+git init
+git add .
+git commit -m "package v0.0.2"
+git remote add origin https://github.com/ismaelnjr/spedpyutils.git
+git push -u origin master
