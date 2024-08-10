@@ -20,7 +20,7 @@ class TestEFD(unittest.TestCase):
         arq.readfile("efd.txt")
 
         test = ArquivoDigitalHandler(arq, "schema-sample1.xml")
-        #test.to_excel("output.xlsx")
+        test.to_excel("output.xlsx")
         df = test.getTable("C170")
         self.assertEqual("TESTE LTDA", arq._registro_abertura.NOME)
         self.assertEqual("24672", df["NUM_DOC"][1])
