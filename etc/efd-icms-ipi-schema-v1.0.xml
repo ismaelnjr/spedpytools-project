@@ -1,28 +1,22 @@
-<hierarquical-schema name="EFD" version="v1.0">
-	<tables-list>
-		<table id="0000" description="Abertura" index="DT_INI|DT_FIN">
-			<column name="NOME"/>
-			<column name="CNPJ"/>
-			<column name="UF"/>
-			<column name="DT_INI" type="datetime" dateformat="%d/%m/%Y"/>
-			<column name="DT_FIN" type="datetime" dateformat="%d/%m/%Y"/>
+<hierarquical_schema name="EFD" version="v1.0" clazz_path="sped.efd.icms_ipi">
+	
+	<table_list group_id="0" description="Abertura, Identificação e Referências">
+
+		<table id="0000" description="Abertura do Arquivo Digital" index="DT_INI|DT_FIN"  >			
+			<column name="__all__"/>
 		</table>
+
 		<table id="0150" description="Parceiro" parent="0000" index="COD_PART">
-			<column name="COD_PART"/>
-			<column name="NOME"/>
-			<column name="CNPJ"/>
-			<column name="CPF"/>
-			<column name="IE"/>
-			<column name="COD_MUN"/>
+			<column name="__all__"/>
 		</table>
+
 		<table id="0200" description="Produtos" parent="0000" index="COD_ITEM">
-			<column name="COD_ITEM"/>
-			<column name="DESCR_ITEM"/>
-			<column name="COD_NCM"/>
-			<column name="CEST"/>
-			<column name="TIPO_ITEM"/>
-			<column name="UNID_INV"/>
+			<column name="__all__"/>
 		</table>
+	</table_list>
+
+	<table_list group_id="C" description="Documentos Fiscais I - Mercadorias (ICMS/IPI)">
+
 		<table id="C100" description="E_S" parent="0000" index="COD_MOD|SER|NUM_DOC">
 			<column name="IND_OPER"/>
 			<column name="IND_EMIT"/>
@@ -31,46 +25,46 @@
 			<column name="COD_SIT"/>
 			<column name="SER"/>
 			<column name="NUM_DOC"/>
-			<column name="DT_DOC" type="datetime" dateformat="%d/%m/%Y"/>
-			<column name="VL_DOC" type="decimal" />
+			<column name="DT_DOC"/>
+			<column name="VL_DOC"/>
 		</table>
+
 		<table id="C170" description="Itens" parent="C100">
 			<column name="NUM_ITEM"/>
 			<column name="COD_ITEM"/>
-			<column name="QTD" type="decimal"/>
+			<column name="QTD" />
 			<column name="UNID"/>
-			<column name="VL_ITEM" type="decimal" />
+			<column name="VL_ITEM"  />
 			<column name="CFOP"/>
 			<column name="CST_ICMS"/>
-			<column name="VL_BC_ICMS" type="decimal" />
-			<column name="ALIQ_ICMS" type="decimal" />
-			<column name="VL_ICMS" type="decimal" />
-			<column name="VL_BC_ICMS_ST" type="decimal" />
-			<column name="ALIQ_ST" type="decimal" />
-			<column name="VL_ICMS_ST" type="decimal" />
-			<column name="VL_IPI" type="decimal" />
+			<column name="VL_BC_ICMS"  />
+			<column name="ALIQ_ICMS"  />
+			<column name="VL_ICMS"  />
+			<column name="VL_BC_ICMS_ST"  />
+			<column name="ALIQ_ST"  />
+			<column name="VL_ICMS_ST"  />
+			<column name="VL_IPI"  />
 		</table>
+
 		<table id="C190" description="Resumo Op" parent="C100">
-			<column name="CFOP"/>
-			<column name="VL_OPR" type="decimal" />
-			<column name="CST_ICMS"/>
-			<column name="VL_BC_ICMS" type="decimal" />
-			<column name="ALIQ_ICMS" type="decimal" />
-			<column name="VL_ICMS" type="decimal" />			
-			<column name="VL_BC_ICMS_ST" type="decimal" />
-			<column name="VL_ICMS_ST" type="decimal" />
-			<column name="VL_RED_BC" type="decimal" />
-			<column name="VL_IPI" type="decimal" />	
-			<column name="COD_OBS"/>
+			<column name="__all__"/>
 		</table>
+
 		<table id="C197" description="Ajuste doc fiscal" parent="C100">
-			<column name="COD_AJ"/>
-			<column name="DESCR_COMPL_AJ" />
-			<column name="COD_ITEM"/>
-			<column name="VL_BC_ICMS" type="decimal" />
-			<column name="ALIQ_ICMS" type="decimal" />
-			<column name="VL_ICMS" type="decimal" />			
-			<column name="VL_OUTROS" type="decimal" />
+			<column name="__all__"/>
 		</table>
-	</tables-list>
-</hierarquical-schema>
+
+	</table_list>
+
+	<table_list group_id="E" description="Apuração do ICMS e do IPI">
+
+		<table id="E100" description="Apuração ICMS" index="DT_INI|DT_FIN" exclude="true">
+			<column name="__all__"/>
+		</table>	
+
+		<table id="E110" description="Apuração do ICMS - Operações Próprias" parent="E100">
+			<column name="__all__"/>
+		</table>		
+
+	</table_list>
+</hierarquical_schema>

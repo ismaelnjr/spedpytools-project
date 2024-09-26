@@ -6,4 +6,4 @@ pip install setuptools
 
 pip install twine
 
-xsdata spedpyutils/schemas/hierarquical-schema.xsd --package spedpyutils.biddings
+xsdata spedpyutils/schemas/hierarquical_schema1.xsd --package spedpyutils.biddings

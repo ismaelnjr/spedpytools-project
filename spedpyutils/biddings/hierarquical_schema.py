@@ -5,14 +5,13 @@ from typing import List, Optional
 @dataclass
 class HierarquicalSchema:
     class Meta:
-        name = "hierarquical-schema"
+        name = "hierarquical_schema"
 
-    tables_list: Optional["HierarquicalSchema.TablesList"] = field(
-        default=None,
+    table_list: List["HierarquicalSchema.TableList"] = field(
+        default_factory=list,
         metadata={
-            "name": "tables-list",
             "type": "Element",
-            "required": True,
+            "min_occurs": 1,
         },
     )
     name: Optional[str] = field(
@@ -27,22 +26,43 @@ class HierarquicalSchema:
             "type": "Attribute",
         },
     )
+    clazz_path: Optional[str] = field(
+        default=None,
+        metadata={
+            "type": "Attribute",
+        },
+    )
 
     @dataclass
-    class TablesList:
-        table: List["HierarquicalSchema.TablesList.Table"] = field(
+    class TableList:
+        table: List["HierarquicalSchema.TableList.Table"] = field(
             default_factory=list,
             metadata={
                 "type": "Element",
+                "min_occurs": 1,
+            },
+        )
+        group_id: Optional[str] = field(
+            default=None,
+            metadata={
+                "type": "Attribute",
+                "required": True,
+            },
+        )
+        description: Optional[str] = field(
+            default=None,
+            metadata={
+                "type": "Attribute",
             },
         )
 
         @dataclass
         class Table:
-            column: List["HierarquicalSchema.TablesList.Table.Column"] = field(
+            column: List["HierarquicalSchema.TableList.Table.Column"] = field(
                 default_factory=list,
                 metadata={
                     "type": "Element",
+                    "min_occurs": 1,
                 },
             )
             id: Optional[str] = field(
@@ -52,7 +72,7 @@ class HierarquicalSchema:
                     "required": True,
                 },
             )
-            name: Optional[str] = field(
+            description: Optional[str] = field(
                 default=None,
                 metadata={
                     "type": "Attribute",
@@ -70,6 +90,12 @@ class HierarquicalSchema:
                     "type": "Attribute",
                 },
             )
+            exclude: bool = field(
+                default=False,
+                metadata={
+                    "type": "Attribute",
+                },
+            )
 
             @dataclass
             class Column:
@@ -83,24 +109,6 @@ class HierarquicalSchema:
                     default=None,
                     metadata={
                         "type": "Attribute",
-                    },
-                )
-                type_value: Optional[str] = field(
-                    default=None,
-                    metadata={
-                        "name": "type",
-                        "type": "Attribute",
-                    },
-                )
-                dateformat: Optional[str] = field(
-                    default=None,
-                    metadata={
-                        "type": "Attribute",
-                    },
-                )
-                key: Optional[str] = field(
-                    default=None,
-                    metadata={
-                        "type": "Attribute",
+                        "required": True,
                     },
                 )

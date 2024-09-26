@@ -29,8 +29,8 @@ Resultaria numa saída do tipo:
 
 Exemplo do arquivo schema-sample1.xml:
 
-    <hierarquical-schema name="EFD" version="v1.0">
-	<tables-list>
+    <hierarquical_schema name="EFD" version="v1.0">
+	<bloco_list>
 		<table id="0000" description="Abertura" index="DT_INI|DT_FIN">
 			<column name="NOME"/>
 			<column name="CNPJ"/>
@@ -65,8 +65,8 @@ Exemplo do arquivo schema-sample1.xml:
 			<column name="VL_ICMS_ST" type="decimal" />
 			<column name="VL_IPI" type="decimal" />
 		</table>		
-	</tables-list>
-    </hierarquical-schema>
+	</bloco_list>
+    </hierarquical_schema>
 
 ## Requisitos
 

@@ -1,8 +1,8 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="hierarquical-schema">
+  <xs:element name="hierarquical_schema">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="tables-list">
+        <xs:element name="bloco_list">
           <xs:complexType>
             <xs:choice maxOccurs="unbounded" minOccurs="0">
               <xs:element name="table">
