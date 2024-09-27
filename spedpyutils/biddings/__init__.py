@@ -1,5 +1,5 @@
-from spedpyutils.biddings.hierarquical_schema import HierarquicalSchema
+from spedpyutils.biddings.arquivo_digital_schema import ArquivoDigitalSchema
 
 __all__ = [
-    "HierarquicalSchema",
+    "ArquivoDigitalSchema",
 ]

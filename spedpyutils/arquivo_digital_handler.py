@@ -1,6 +1,6 @@
 import pandas as pd
 from xsdata.formats.dataclass.parsers import XmlParser
-from spedpyutils.biddings.hierarquical_schema import HierarquicalSchema
+from spedpyutils.biddings.arquivo_digital_schema import ArquivoDigitalSchema
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
@@ -8,156 +8,175 @@ from sped.campos import Campo
 from tqdm import tqdm
 import importlib
 import locale
+
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
+class ArquivoDigitalHandler:
+    class ArquivoDigitalHandler:
+        """
+        Handles the processing and management of digital file records.
 
-class ArquivoDigitalHandler(object):
-    _dataframes = None
-    _schema = None
-    _arquivo_digital = None
-    
-    def __init__(self, arq: ArquivoDigital, schema: HierarquicalSchema):
-        self._dataframes = None
-        self._schema = schema
-        self._arquivo_digital = arq   
-    
-    def __init__(self, arq: ArquivoDigital, schema_path: str):
-        self._dataframes = None
-        self._schema = self._load_schema(schema_path)
-        self._arquivo_digital = arq   
+        This class is responsible for loading schemas, building pandas DataFrames from digital file records, 
+        and exporting the data to Excel files. It manages hierarchical relationships between records and 
+        provides access to the constructed DataFrames.
 
-    def getDataFrame(self, registro_id: str):
-        self.update()
-        return self._dataframes[registro_id]
-    
-    def getContent(self) -> OrderedDict:
+        Args:
+            arquivo_digital (ArquivoDigital): The digital file containing records to be processed.
+            schema (str): The schema definition used for processing the records.
+
+        Attributes:
+            get_dataframes (OrderedDict): Property that returns the constructed DataFrames.
+
+        Examples:
+            handler = ArquivoDigitalHandler(arquivo_digital, schema)
+            handler.build_dataframes(silent=False)
+            handler.to_excel("output.xlsx")
+        """
+
+
+    def __init__(self, arquivo_digital: ArquivoDigital, schema: str):
+        self._dataframes = None
+        self._schema = self.__load_schema(schema)
+        self._arquivo_digital = arquivo_digital
+
+    @property
+    def get_dataframes(self) -> OrderedDict:
         return self._dataframes
 
-    def _read_data(self) -> OrderedDict:
-        
-        df = OrderedDict()
+    def build_dataframes(self, verbose=True):
+        """
+        Builds a dictionary of pandas DataFrames from the records in the digital file.
+
+        This method processes each record, extracting relevant columns and values, 
+        and organizes them into DataFrames based on their unique identifiers. 
+        It also handles hierarchical relationships between records.
+
+        Args:
+            silent (bool): If True, suppresses progress output during processing. Defaults to True.
+
+        Returns:
+            None: The method assigns the constructed DataFrames to the instance variable _dataframes.
+
+        Examples:
+            handler.build_dataframes(silent=False)
+        """
+        df = {}
         cache = {}
-        table_map = self._create_table_map(self._schema)
-             
-        for registro in tqdm(self._extract_content(self._arquivo_digital), 
-                      desc="processing dataframe", 
-                      colour="RED"):
-            
-            if registro.REG in table_map.keys():
-                
-                # mantendo cache do ultimo registro lido com campos chaves
-                r_keys_vals = []
+        table_map = self.__create_table_map(self._schema)
+
+        for registro in tqdm(self.__get_all_registros(), 
+                            desc="processing dataframe", 
+                            colour="RED",
+                            disable=not verbose):
+
+            if registro.REG in table_map:
                 r_keys_cols = table_map[registro.REG][1]
-                for kcol in r_keys_cols:
-                    r_keys_vals.append(self._get_registro_value(registro, kcol))
-                if len(r_keys_cols) > 0:
+                r_keys_vals = [self.__get_registro_value(registro, kcol) for kcol in r_keys_cols]
+                if r_keys_cols:
                     cache[registro.REG] = [r_keys_cols, r_keys_vals]
-            
-                # montando a linha do registro concatenando informações relativa ao pai                
+
                 r_parent = table_map[registro.REG][2]
                 r_cols = [registro.REG] + table_map[registro.REG][0]
-                r_vals = []
-                
-                for col in r_cols:
-                    r_vals.append(self._get_registro_value(registro, col))
-                
-                if r_parent:
-                    while not r_parent == None:
-                        r_cols = [r_parent] + cache[r_parent][0] + r_cols
-                        r_vals = [r_parent] + cache[r_parent][1] + r_vals
-                        r_parent = table_map[r_parent][2]
+                r_vals = [self.__get_registro_value(registro, col) for col in r_cols]
+                while r_parent:
+                    r_cols = [r_parent] + cache[r_parent][0] + r_cols
+                    r_vals = [r_parent] + cache[r_parent][1] + r_vals
+                    r_parent = table_map[r_parent][2]
 
-                if not registro.REG in df.keys():
-                    df[registro.REG] = pd.DataFrame(columns=self._get_cols_names(r_cols))
-                
+                if registro.REG not in df:
+                    df[registro.REG] = pd.DataFrame(columns=self.__get_cols_names(r_cols))
+
                 df[registro.REG].loc[len(df[registro.REG])] = r_vals
-        
-        return df
-    
-    def _get_cols_names(self, cols: any):
-        array = []
-        for col in cols:
-            if isinstance(col, Campo):
-                    array.append(col.nome)
-            else:
-                array.append(col)
-        return array
 
-    
-    def _get_registro_value(self, registro: Registro, obj:  any):
-        if isinstance(obj, Campo): 
-            return getattr(registro, obj.nome)
-        else:                    
-            return str(obj)
-    
-    def _extract_content(self, arq: ArquivoDigital):         
-        array = []
-        for key in arq._blocos.keys():
-            array += arq._blocos[key]._registros
-        return [arq._registro_abertura] + array + [arq._registro_encerramento]
+        self._dataframes = df
 
-    def  _create_table_map(self, schema: HierarquicalSchema): 
+    def __get_cols_names(self, cols: any):
+        return [col.nome if isinstance(col, Campo) else col for col in cols]
+
+    def __get_registro_value(self, registro: Registro, obj: any):
+        return getattr(registro, obj.nome) if isinstance(obj, Campo) else str(obj)
+
+    def __create_table_map(self, schema: ArquivoDigitalSchema): 
         map = {}
-        for table_list in schema.table_list:         
-            
-            for table in table_list.table:            
-                all_columns_dict = self._get_all_cols_dict(schema, table)   
-                
+        for schema_bloco in schema.bloco: 
+
+            for reg in schema_bloco.registro:    
+                all_columns_dict = self.__get_all_cols_dict(schema, reg)   
+
                 cols, idx_cols, idx_names = [], [], []
-            
-                if table.index != None:
-                    idx_names = table.index.split("|")
-                    
-                for col in table.column:
-                    if '__all__' == col.name:
-                        cols = list(all_columns_dict.values())                    
+
+                if reg.index != None:
+                    idx_names = reg.index.split("|")
+
+                for campo in reg.campo:
+                    if campo.name == '__all__':
+                        cols = list(all_columns_dict.values())
                     else:
-                        cols.append(all_columns_dict.get(col.name))      
-                
-                for idx in idx_names:
-                    idx_cols.append(all_columns_dict.get(idx))
-                                    
-                map[table.id] = (cols, idx_cols, table.parent)
-                
+                        cols.append(all_columns_dict.get(campo.name))      
+
+                idx_cols.extend(all_columns_dict.get(idx) for idx in idx_names)
+                map[reg.id] = (cols, idx_cols, reg.parent)
+
         return map
-    
-    def _get_all_cols_dict(self, schema: HierarquicalSchema, table: HierarquicalSchema.TableList.Table):
+
+    def __get_all_cols_dict(self, schema: ArquivoDigitalSchema, reg: ArquivoDigitalSchema.Bloco.Registro):
         dict = {}
         try:
             modulo = importlib.import_module(f"{schema.clazz_path}.registros")
-            clazz = getattr(modulo, f"Registro{table.id}")
-            for col in getattr(clazz, 'campos'):
-                if col.nome != 'REG':
-                    dict[col.nome] = col
+            clazz = getattr(modulo, f"Registro{reg.id}")
+            for campo in getattr(clazz, 'campos'):
+                if campo.nome != 'REG':
+                    dict[campo.nome] = campo
         except ImportError:
             print(f"Erro: O módulo '{modulo}' não foi encontrado.")
         except AttributeError:
             print(f"Erro: A classe '{clazz}' não foi encontrada no módulo '{modulo}'.")
-        
         return dict
-        
-         
+
     def to_excel(self, filename):
+        """
+        Exports the constructed DataFrames to an Excel file.
+
+        This method iterates through the schema blocks and their associated records, 
+        exporting each DataFrame to a separate sheet in the specified Excel file. 
+        It skips any records marked for exclusion.
+
+        Args:
+            filename (str): The name of the Excel file to which the data will be exported.
+
+        Raises:
+            RuntimeError: If there is an error during the export process, a RuntimeError is raised 
+            with a message indicating the failure.
+
+        Examples:
+            handler.to_excel("output.xlsx")
+        """
+
         try:
-            self.update()
             with pd.ExcelWriter(filename) as writer:
-                # Exportar registros por aba
-                for tab_list in tqdm(self._schema.table_list, 
+                for bloco_list in tqdm(self._schema.bloco, 
                                 desc="exporting data", 
                                 colour="RED"):
-                    for tab in tab_list.table:
-                        df = self._dataframes[tab.id] 
-                        if not tab.exclude:                            
-                            df.to_excel(writer, index=False, sheet_name=tab.id, engine='openpyxl')
-                                            
-        except Exception as e:
-            raise RuntimeError(f"Erro não foi possível exportar dados para arquivo: {filename}, erro: {e}")
+                    for reg in bloco_list.registro:
+                        df = self._dataframes[reg.id] 
+                        if not reg.exclude:                            
+                            df.to_excel(writer, index=False, sheet_name=reg.id, engine='openpyxl')
 
-    def update(self, reload: bool = False):        
-        if self._dataframes is None or reload:
-            self._dataframes = self._read_data()
+        except Exception as ex:
+            raise RuntimeError(
+                f"Erro não foi possível exportar dados para arquivo: {filename}, erro: {ex}"
+            ) from ex
 
-    def _load_schema(self, name):
+    def __load_schema(self, name):
         parser = XmlParser()
-        return parser.parse(name, HierarquicalSchema)
+        return parser.parse(name, ArquivoDigitalSchema)
+    
+    def __get_all_registros(self):        
+        array = []
+        for key in self._arquivo_digital._blocos:
+            array += self._arquivo_digital._blocos[key]._registros
+        return [self._arquivo_digital._registro_abertura] + array + [self._arquivo_digital._registro_encerramento]
+            
+
+

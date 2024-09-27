@@ -3,11 +3,11 @@ from typing import List, Optional
 
 
 @dataclass
-class HierarquicalSchema:
+class ArquivoDigitalSchema:
     class Meta:
-        name = "hierarquical_schema"
+        name = "arquivo_digital_schema"
 
-    table_list: List["HierarquicalSchema.TableList"] = field(
+    bloco: List["ArquivoDigitalSchema.Bloco"] = field(
         default_factory=list,
         metadata={
             "type": "Element",
@@ -34,15 +34,15 @@ class HierarquicalSchema:
     )
 
     @dataclass
-    class TableList:
-        table: List["HierarquicalSchema.TableList.Table"] = field(
+    class Bloco:
+        registro: List["ArquivoDigitalSchema.Bloco.Registro"] = field(
             default_factory=list,
             metadata={
                 "type": "Element",
                 "min_occurs": 1,
             },
         )
-        group_id: Optional[str] = field(
+        id: Optional[str] = field(
             default=None,
             metadata={
                 "type": "Attribute",
@@ -57,8 +57,8 @@ class HierarquicalSchema:
         )
 
         @dataclass
-        class Table:
-            column: List["HierarquicalSchema.TableList.Table.Column"] = field(
+        class Registro:
+            campo: List["ArquivoDigitalSchema.Bloco.Registro.Campo"] = field(
                 default_factory=list,
                 metadata={
                     "type": "Element",
@@ -98,7 +98,7 @@ class HierarquicalSchema:
             )
 
             @dataclass
-            class Column:
+            class Campo:
                 value: str = field(
                     default="",
                     metadata={
