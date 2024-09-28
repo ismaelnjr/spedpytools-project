@@ -3,21 +3,29 @@ from typing import List, Optional
 
 
 @dataclass
-class ArquivoDigitalSchema:
+class ExportLayout:
     class Meta:
-        name = "arquivo_digital_schema"
+        name = "export_layout"
 
-    bloco: List["ArquivoDigitalSchema.Bloco"] = field(
-        default_factory=list,
+    data_source_config: Optional["ExportLayout.DataSourceConfig"] = field(
+        default=None,
         metadata={
             "type": "Element",
-            "min_occurs": 1,
+            "required": True,
+        },
+    )
+    tabs: Optional["ExportLayout.Tabs"] = field(
+        default=None,
+        metadata={
+            "type": "Element",
+            "required": True,
         },
     )
     name: Optional[str] = field(
         default=None,
         metadata={
             "type": "Attribute",
+            "required": True,
         },
     )
     version: Optional[str] = field(
@@ -26,46 +34,33 @@ class ArquivoDigitalSchema:
             "type": "Attribute",
         },
     )
-    clazz_path: Optional[str] = field(
-        default=None,
-        metadata={
-            "type": "Attribute",
-        },
-    )
 
     @dataclass
-    class Bloco:
-        registro: List["ArquivoDigitalSchema.Bloco.Registro"] = field(
+    class DataSourceConfig:
+        data_source: List["ExportLayout.DataSourceConfig.DataSource"] = field(
             default_factory=list,
             metadata={
                 "type": "Element",
                 "min_occurs": 1,
             },
         )
-        id: Optional[str] = field(
+        clazz_path: Optional[str] = field(
             default=None,
             metadata={
                 "type": "Attribute",
                 "required": True,
             },
         )
-        description: Optional[str] = field(
-            default=None,
-            metadata={
-                "type": "Attribute",
-            },
-        )
 
         @dataclass
-        class Registro:
-            campo: List["ArquivoDigitalSchema.Bloco.Registro.Campo"] = field(
-                default_factory=list,
+        class DataSource:
+            value: str = field(
+                default="",
                 metadata={
-                    "type": "Element",
-                    "min_occurs": 1,
+                    "required": True,
                 },
             )
-            id: Optional[str] = field(
+            name: Optional[str] = field(
                 default=None,
                 metadata={
                     "type": "Attribute",
@@ -90,15 +85,43 @@ class ArquivoDigitalSchema:
                     "type": "Attribute",
                 },
             )
-            exclude: bool = field(
-                default=False,
+
+    @dataclass
+    class Tabs:
+        tab: List["ExportLayout.Tabs.Tab"] = field(
+            default_factory=list,
+            metadata={
+                "type": "Element",
+                "min_occurs": 1,
+            },
+        )
+
+        @dataclass
+        class Tab:
+            column: List["ExportLayout.Tabs.Tab.Column"] = field(
+                default_factory=list,
+                metadata={
+                    "type": "Element",
+                    "min_occurs": 1,
+                },
+            )
+            name: Optional[str] = field(
+                default=None,
                 metadata={
                     "type": "Attribute",
+                    "required": True,
+                },
+            )
+            data_source: Optional[str] = field(
+                default=None,
+                metadata={
+                    "type": "Attribute",
+                    "required": True,
                 },
             )
 
             @dataclass
-            class Campo:
+            class Column:
                 value: str = field(
                     default="",
                     metadata={

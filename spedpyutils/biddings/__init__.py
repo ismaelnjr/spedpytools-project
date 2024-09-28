@@ -1,5 +1,5 @@
-from spedpyutils.biddings.arquivo_digital_schema import ArquivoDigitalSchema
+from spedpyutils.biddings.export_layout import ExportLayout
 
 __all__ = [
-    "ArquivoDigitalSchema",
+    "ExportLayout",
 ]

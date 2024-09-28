@@ -1,6 +1,8 @@
 import os
+from xsdata.formats.dataclass.parsers import XmlParser
 from sped.efd.icms_ipi.arquivos import ArquivoDigital as EFDArquivoDigital
 from .arquivo_digital_handler import ArquivoDigitalHandler
+from .biddings.export_layout import ExportLayout
 
 class SpedUtils:
     """
@@ -25,8 +27,9 @@ class SpedUtils:
         
         def __init__(self):
             super().__init__()
-            schema_path = os.path.join(os.path.dirname(__file__), 'layout', 'efd-icms-ipi-schema.xml')
-            self._handler = ArquivoDigitalHandler(self, schema_path)
+            layout_path = os.path.join(os.path.dirname(__file__), 'layout\\export_layout.xml')
+            export_layout = XmlParser().parse(layout_path, ExportLayout)
+            self._handler = ArquivoDigitalHandler(self, export_layout)
 
         def to_excel(self, filename: str, verbose = False):
             """

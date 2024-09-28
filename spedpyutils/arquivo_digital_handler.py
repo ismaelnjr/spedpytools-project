@@ -1,6 +1,6 @@
 import pandas as pd
 from xsdata.formats.dataclass.parsers import XmlParser
-from spedpyutils.biddings.arquivo_digital_schema import ArquivoDigitalSchema
+from spedpyutils.biddings.export_layout import ExportLayout
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
@@ -13,31 +13,29 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
 class ArquivoDigitalHandler:
-    class ArquivoDigitalHandler:
-        """
-        Handles the processing and management of digital file records.
+    """
+    Handles the processing and management of digital file records.
 
-        This class is responsible for loading schemas, building pandas DataFrames from digital file records, 
-        and exporting the data to Excel files. It manages hierarchical relationships between records and 
-        provides access to the constructed DataFrames.
+    This class is responsible for loading schemas, building pandas DataFrames from digital file records, 
+    and exporting the data to Excel files. It manages hierarchical relationships between records and 
+    provides access to the constructed DataFrames.
 
-        Args:
-            arquivo_digital (ArquivoDigital): The digital file containing records to be processed.
-            schema (str): The schema definition used for processing the records.
+    Args:
+        arquivo_digital (ArquivoDigital): The digital file containing records to be processed.
+        schema (str): The schema definition used for processing the records.
 
-        Attributes:
-            get_dataframes (OrderedDict): Property that returns the constructed DataFrames.
+    Attributes:
+        get_dataframes (OrderedDict): Property that returns the constructed DataFrames.
 
-        Examples:
-            handler = ArquivoDigitalHandler(arquivo_digital, schema)
-            handler.build_dataframes(silent=False)
-            handler.to_excel("output.xlsx")
-        """
+    Examples:
+        handler = ArquivoDigitalHandler(arquivo_digital, schema)
+        handler.build_dataframes(silent=False)
+        handler.to_excel("output.xlsx")
+    """
 
-
-    def __init__(self, arquivo_digital: ArquivoDigital, schema: str):
+    def __init__(self, arquivo_digital: ArquivoDigital, layout: ExportLayout):
         self._dataframes = None
-        self._schema = self.__load_schema(schema)
+        self._export_layout = layout
         self._arquivo_digital = arquivo_digital
 
     @property
@@ -63,7 +61,7 @@ class ArquivoDigitalHandler:
         """
         df = {}
         cache = {}
-        table_map = self.__create_table_map(self._schema)
+        table_map = self.__create_table_map(self._export_layout)
 
         for registro in tqdm(self.__get_all_registros(), 
                             desc="processing dataframe", 
@@ -97,34 +95,27 @@ class ArquivoDigitalHandler:
     def __get_registro_value(self, registro: Registro, obj: any):
         return getattr(registro, obj.nome) if isinstance(obj, Campo) else str(obj)
 
-    def __create_table_map(self, schema: ArquivoDigitalSchema): 
+    def __create_table_map(self, layout: ExportLayout): 
         map = {}
-        for schema_bloco in schema.bloco: 
+        for data_source in layout.data_source_config.data_source: 
 
-            for reg in schema_bloco.registro:    
-                all_columns_dict = self.__get_all_cols_dict(schema, reg)   
+            all_columns_dict = self.__get_all_cols_dict(data_source)   
 
-                cols, idx_cols, idx_names = [], [], []
-
-                if reg.index != None:
-                    idx_names = reg.index.split("|")
-
-                for campo in reg.campo:
-                    if campo.name == '__all__':
-                        cols = list(all_columns_dict.values())
-                    else:
-                        cols.append(all_columns_dict.get(campo.name))      
-
+            cols, idx_cols, idx_names = [], [], []
+            cols = list(all_columns_dict.values())
+            if data_source.index != None:
+                idx_names = data_source.index.split("|")                
                 idx_cols.extend(all_columns_dict.get(idx) for idx in idx_names)
-                map[reg.id] = (cols, idx_cols, reg.parent)
+            
+            map[data_source.name] = (cols, idx_cols, data_source.parent)
 
         return map
 
-    def __get_all_cols_dict(self, schema: ArquivoDigitalSchema, reg: ArquivoDigitalSchema.Bloco.Registro):
+    def __get_all_cols_dict(self, data_source: ExportLayout.DataSourceConfig.DataSource):
         dict = {}
         try:
-            modulo = importlib.import_module(f"{schema.clazz_path}.registros")
-            clazz = getattr(modulo, f"Registro{reg.id}")
+            modulo = importlib.import_module(f"{self._export_layout.data_source_config.clazz_path}.registros")
+            clazz = getattr(modulo, f"Registro{data_source.name}")
             for campo in getattr(clazz, 'campos'):
                 if campo.nome != 'REG':
                     dict[campo.nome] = campo
@@ -155,22 +146,17 @@ class ArquivoDigitalHandler:
 
         try:
             with pd.ExcelWriter(filename) as writer:
-                for bloco_list in tqdm(self._schema.bloco, 
+                for tab in tqdm(self._export_layout.tabs.tab, 
                                 desc="exporting data", 
                                 colour="RED"):
-                    for reg in bloco_list.registro:
-                        df = self._dataframes[reg.id] 
-                        if not reg.exclude:                            
-                            df.to_excel(writer, index=False, sheet_name=reg.id, engine='openpyxl')
+                    df = self._dataframes[tab.data_source] 
+                    df.to_excel(writer, index=False, sheet_name=tab.name, engine='openpyxl')
 
         except Exception as ex:
             raise RuntimeError(
                 f"Erro não foi possível exportar dados para arquivo: {filename}, erro: {ex}"
             ) from ex
-
-    def __load_schema(self, name):
-        parser = XmlParser()
-        return parser.parse(name, ArquivoDigitalSchema)
+    
     
     def __get_all_registros(self):        
         array = []
