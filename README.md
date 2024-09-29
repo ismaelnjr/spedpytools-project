@@ -13,7 +13,6 @@ A ideia seria visualizar em formato de tabela todas as informações de um regis
 
 ## Requisitos
 
-- xsdata
 - spedpy
 - pandas
 

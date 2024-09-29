@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from xsdata.formats.dataclass.parsers import XmlParser
 from sped.efd.icms_ipi.arquivos import ArquivoDigital as EFDArquivoDigital
 from .arquivo_digital_handler import ArquivoDigitalHandler
@@ -8,7 +8,7 @@ class SpedUtils:
     A utility class for handling SPED (Public Digital Bookkeeping System) files.
     """
     
-    SPED_ICMS_IPI_CONFIG = 'config\\efd_icms_ipi.json'
+    SPED_ICMS_IPI_CONFIG = 'config/efd_icms_ipi.json'
 
     class EFD(EFDArquivoDigital):
         """
@@ -28,8 +28,8 @@ class SpedUtils:
         
         def __init__(self):
             super().__init__()
-            layout_path = os.path.join(os.path.dirname(__file__), SpedUtils.SPED_ICMS_IPI_CONFIG)
-            self._handler = ArquivoDigitalHandler(self, layout_path)
+            layout_path = Path(__file__).parent / SpedUtils.SPED_ICMS_IPI_CONFIG
+            self._handler = ArquivoDigitalHandler(self, str(layout_path))
 
         def to_excel(self, filename: str, verbose = False):
             """

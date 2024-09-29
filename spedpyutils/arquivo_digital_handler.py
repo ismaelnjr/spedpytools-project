@@ -1,10 +1,9 @@
-import pandas as pd
-from xsdata.formats.dataclass.parsers import XmlParser
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
 from sped.campos import Campo
 from tqdm import tqdm
+import pandas as pd
 import importlib
 import locale
 import json
@@ -110,33 +109,29 @@ class ArquivoDigitalHandler:
     def __create_table_map(self): 
         map = {}
         for data_source in self._data_source_list: 
-
             all_columns_dict = self.__get_all_cols_dict(data_source['clazz'])   
-
-            cols, idx_cols, idx_names = [], [], []
             cols = list(all_columns_dict.values())
 
-            if 'index' in data_source.keys():
-                idx_names = data_source['index'].split("|")                
-                idx_cols.extend(all_columns_dict.get(idx) for idx in idx_names)
-            
+            idx_names = data_source.get('index', '').split("|")
+            idx_cols = [all_columns_dict.get(idx) for idx in idx_names if idx]
+
             map[data_source['id']] = (cols, idx_cols, data_source.get('parent', None))
 
         return map
 
+
     def __get_all_cols_dict(self, data_source: str):
-        dict = {}
+        columns_dict = {}
         try:
             modulo = importlib.import_module(self._clazz_path)
             clazz = getattr(modulo, data_source)
-            for campo in getattr(clazz, 'campos'):
-                if campo.nome != 'REG':
-                    dict[campo.nome] = campo
+            columns_dict = {campo.nome: campo for campo in getattr(clazz, 'campos') if campo.nome != 'REG'}
         except ImportError:
             print(f"Erro: O módulo '{modulo}' não foi encontrado.")
         except AttributeError:
             print(f"Erro: A classe '{clazz}' não foi encontrada no módulo '{modulo}'.")
-        return dict
+        return columns_dict
+
 
     def to_excel(self, filename, verbose = True):
         """

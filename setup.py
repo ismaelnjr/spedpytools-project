@@ -15,7 +15,7 @@ setup(name='spedpyutils',
     description=u'Biblioteca para visualização de um arquivo sped em estrutura de tabelas hierarquicas. Compatibilidade com a biblioteca python-sped',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=['spedpy', 'xsdata', 'pandas', 'openpyxl', 'tqdm'],
+    install_requires=['spedpy', 'pandas', 'openpyxl', 'tqdm'],
     classifiers=
         ["Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
