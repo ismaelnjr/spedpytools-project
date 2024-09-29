@@ -1,14 +1,11 @@
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
-from sped.campos import Campo
+from sped.campos import Campo, CampoNumerico, CampoFixo, CampoBool
 from tqdm import tqdm
 import pandas as pd
 import importlib
-import locale
 import json
-
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
 class ArquivoDigitalHandler:
@@ -44,7 +41,7 @@ class ArquivoDigitalHandler:
         with open(config_file, 'r') as f:
             self._config_file = json.load(f)
             
-            self._data_source_list = self._config_file.get("data_source_list", [])
+            self._data_source_list = self._config_file.get("data_sources", {})
             self._clazz_path = self._config_file.get("clazz_path", None)
             self._spreadsheet = self._config_file.get("spreadsheet", [])
 
@@ -108,23 +105,24 @@ class ArquivoDigitalHandler:
 
     def __create_table_map(self): 
         map = {}
-        for data_source in self._data_source_list: 
-            all_columns_dict = self.__get_all_cols_dict(data_source['clazz'])   
+        for data_src_id in self._data_source_list: 
+            data_source = self._data_source_list.get(data_src_id)
+            all_columns_dict = self.__get_all_cols_dict(data_source)   
             cols = list(all_columns_dict.values())
 
             idx_names = data_source.get('index', '').split("|")
             idx_cols = [all_columns_dict.get(idx) for idx in idx_names if idx]
 
-            map[data_source['id']] = (cols, idx_cols, data_source.get('parent', None))
+            map[data_src_id] = (cols, idx_cols, data_source.get('parent', None))
 
         return map
 
 
-    def __get_all_cols_dict(self, data_source: str):
+    def __get_all_cols_dict(self, data_source: any):
         columns_dict = {}
         try:
             modulo = importlib.import_module(self._clazz_path)
-            clazz = getattr(modulo, data_source)
+            clazz = getattr(modulo, data_source['clazz'])
             columns_dict = {campo.nome: campo for campo in getattr(clazz, 'campos') if campo.nome != 'REG'}
         except ImportError:
             print(f"Erro: O módulo '{modulo}' não foi encontrado.")
@@ -132,6 +130,14 @@ class ArquivoDigitalHandler:
             print(f"Erro: A classe '{clazz}' não foi encontrada no módulo '{modulo}'.")
         return columns_dict
 
+    def __get_cols_dtypes(self, cols_dict):
+        dtypes = {}
+        for col_name in cols_dict:
+            col = cols_dict.get(col_name)
+            if isinstance(col, CampoNumerico): # definir que campos numericos sejam sempre float64               
+                dtypes[col_name] = 'float64'
+                
+        return dtypes
 
     def to_excel(self, filename, verbose = True):
         """
@@ -159,14 +165,26 @@ class ArquivoDigitalHandler:
                                 desc="exporting data", 
                                 colour="RED",
                                 disable=not verbose):
-                    df = self._dataframes[tab['data_source_id']] 
-                    df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')
+                    data_source = tab.get('data_source')
+                    df = self._dataframes[data_source] 
+                    cols = self.__get_all_cols_dict(self._data_source_list.get(data_source))                    
+                    df = df.astype(self.__get_cols_dtypes(cols)) # Definir que campos numericos sejam sempre float   
+                    df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')  
 
         except Exception as ex:
             raise RuntimeError(
                 f"Erro não foi possível exportar dados para arquivo: {filename}, erro: {ex}"
             ) from ex
     
+    def __get_style_output_format(self, cols_dict):
+        
+        style_format = {}
+        for col_name in cols_dict:
+            col = cols_dict.get(col_name)
+            if isinstance(col, CampoNumerico): 
+                style_format[col_name] = ArquivoDigitalHandler.Formatter.txt_to_decimal_br
+                
+        return style_format
     
     def __get_all_registros(self):        
         array = []
@@ -174,5 +192,4 @@ class ArquivoDigitalHandler:
             array += self._arquivo_digital._blocos[key]._registros
         return [self._arquivo_digital._registro_abertura] + array + [self._arquivo_digital._registro_encerramento]
             
-
 

@@ -43,4 +43,4 @@ class SpedUtils:
  
             """
             self._handler.build_dataframes(verbose=verbose)
-            self._handler.to_excel(filename)
+            self._handler.to_excel(filename, verbose=verbose)
