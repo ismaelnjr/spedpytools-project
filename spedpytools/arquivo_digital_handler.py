@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
-from sped.campos import Campo, CampoNumerico, CampoFixo, CampoBool
+from sped.campos import Campo, CampoNumerico
 from tqdm import tqdm
 import pandas as pd
 import importlib
@@ -166,10 +166,12 @@ class ArquivoDigitalHandler:
                                 colour="RED",
                                 disable=not verbose):
                     data_source = tab.get('data_source')
-                    df = self._dataframes[data_source] 
-                    cols = self.__get_all_cols_dict(self._data_source_list.get(data_source))                    
-                    df = df.astype(self.__get_cols_dtypes(cols)) # Definir que campos numericos sejam sempre float   
-                    df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')  
+                    
+                    if data_source in self._dataframes.keys():
+                        df = self._dataframes[data_source] 
+                        cols = self.__get_all_cols_dict(self._data_source_list.get(data_source))                    
+                        df = df.astype(self.__get_cols_dtypes(cols)) # Definir que campos numericos sejam sempre float   
+                        df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')  
 
         except Exception as ex:
             raise RuntimeError(

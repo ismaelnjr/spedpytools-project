@@ -1,5 +1,5 @@
 {
-	"name": "EFD_ICMS_IPI_v1_0",
+	"name": "EFD_ICMS_IPI",
 	"clazz_path": "sped.efd.icms_ipi.registros",
 	"data_sources": {
 		"0000" :
@@ -78,34 +78,12 @@
 				"data_source": "0200"
 			},
 			{
-				"columns": [
-					"IND_OPER", 
-					"IND_EMIT", 
-					"COD_PART", 
-					"COD_MOD", 
-					"COD_SIT", 
-					"SER", 
-					"NUM_DOC", 
-					"DT_DOC", 
-					"VL_DOC"],
+				"columns": ["__all__"],
 				"name": "C100 - E_S",
 				"data_source": "C100"
 			},
 			{
-				"columns": [
-					"NUM_ITEM", 
-					"COD_ITEM", 
-					"QTD", 
-					"UNID", 
-					"VL_ITEM", 
-					"CFOP", 
-					"CST_ICMS", 
-					"VL_BC_ICMS", 
-					"ALIQ_ICMS", 
-					"VL_ICMS", 
-					"VL_BC_ICMS_ST", 
-					"VL_ICMS_ST",
-					"VL_IPI"],
+				"columns": ["__all__"],
 				"name": "C170 - Itens",
 				"data_source": "C170"
 			},

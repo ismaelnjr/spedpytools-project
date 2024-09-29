@@ -5,9 +5,9 @@ Utiliza o relacionamento hierarquico típico da estrutura do SPED FISCAL (EFD, E
 
 A ideia seria visualizar em formato de tabela todas as informações de um registro e seus registros pais, por exemplo:
 
-	from spedpyutils.sped_utils import SpedUtils
+	from spedpytools import spedpytools
 	
-	arq = SpedUtils.EFD()
+    arq = spedpytools.EFDFile()
     arq.readfile("efd.txt")
     arq.to_excel("output.xlsx")
 
@@ -18,4 +18,4 @@ A ideia seria visualizar em formato de tabela todas as informações de um regis
 
 ## Como instalar
 
-    $ pip install spedpyutils
+    $ pip install spedpytools

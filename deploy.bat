@@ -13,6 +13,7 @@ python setup.py sdist
 
 REM 3. Fazer upload para o PyPI
 echo Fazendo upload para o PyPI...
+pause
 twine upload dist/*
 
 REM 4. Finalizando

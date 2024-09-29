@@ -1,0 +1,68 @@
+{
+	"name": "NFE_REP_LAYOUT",
+	"clazz_path": "sped.nfe.registros",
+	"data_sources": {
+		"N100":
+			{
+				"clazz": "RegistroN100",
+				"description": "NFe",
+				"index": "CNPJ_EMIT|NUM_NFE|SERIE"
+			},
+		"N140":
+			{
+				"clazz": "RegistroN140",
+				"description": "Faturas",
+				"parent": "N100",
+				"index": "CNPJ"
+			},
+		"N141":
+			{
+				"clazz": "RegistroN141",
+				"description": "Duplicatas",
+				"parent": "N140",
+				"index": "NUM_DUP"
+			},
+		"N170":
+			{
+				"clazz": "RegistroN170",
+				"description": "Itens",
+				"parent": "N100"
+			},
+		"Z100":
+			{
+				"clazz": "RegistroZ100",
+				"description": "Eventos NFe"
+			}
+	},
+	"spreadsheet": {
+		"tabs": [
+			{
+				"columns": ["__all__"],
+				"name": "N100 - Listagem NFe",
+				"data_source": "N100"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "N170 - Itens NFe",
+				"data_source": "N170"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "N140 - Faturas",
+				"data_source": "C100"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "N141 - Duplicatas",
+				"data_source": "N141"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "Z100 - Eventos",
+				"data_source": "Z100"
+			}			
+		]
+			
+	}	
+	
+}
