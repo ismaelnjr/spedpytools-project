@@ -1,0 +1,131 @@
+{
+	"name": "EFD_ICMS_IPI_v1_0",
+	"clazz_path": "sped.efd.icms_ipi.registros",
+	"data_source_list": [
+		{
+			"id": "0000",
+			"clazz": "Registro0000",
+			"description": "Abertura do Arquivo Digital",
+			"index": "DT_INI|DT_FIN"
+		},
+		{
+			"id": "0150",
+			"clazz": "Registro0150",
+			"description": "Participantes",
+			"parent": "0000",
+			"index": "COD_PART"
+		},
+		{
+			"id": "0200",
+			"clazz": "Registro0200",
+			"description": "Produtos",
+			"parent": "0000",
+			"index": "COD_ITEM"
+		},
+		{
+			"id": "C100",
+			"clazz": "RegistroC100",
+			"description": "E_S",
+			"parent": "0000",
+			"index": "COD_MOD|SER|NUM_DOC"
+		},
+		{
+			"id": "C170",
+			"clazz": "RegistroC170",
+			"description": "Itens",
+			"parent": "C100"
+		},
+		{
+			"id": "C190",
+			"clazz": "RegistroC190",
+			"description": "Resumo Op",
+			"parent": "C100"
+		},
+		{
+			"id": "C197",
+			"clazz": "RegistroC197",
+			"description": "Ajuste doc fiscal",
+			"parent": "C100"
+		},
+		{
+			"id": "E100",
+			"clazz": "RegistroE100",
+			"description": "Apuração ICMS",
+			"index": "DT_INI|DT_FIN"
+		},
+		{
+			"id": "E110",
+			"clazz": "RegistroE110",
+			"description": "Apuração do ICMS - Operações Próprias",
+			"parent": "E100"
+		}
+	],
+	"spreadsheet": {
+		"tabs": [
+			{
+				"columns": ["__all__"],
+				"name": "0000 - Abertura",
+				"data_source_id": "0000"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "0150 - Participantes",
+				"data_source_id": "0150"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "0200 - Produtos",
+				"data_source_id": "0200"
+			},
+			{
+				"columns": [
+					"IND_OPER", 
+					"IND_EMIT", 
+					"COD_PART", 
+					"COD_MOD", 
+					"COD_SIT", 
+					"SER", 
+					"NUM_DOC", 
+					"DT_DOC", 
+					"VL_DOC"],
+				"name": "C100 - E_S",
+				"data_source_id": "C100"
+			},
+			{
+				"columns": [
+					"NUM_ITEM", 
+					"COD_ITEM", 
+					"QTD", 
+					"UNID", 
+					"VL_ITEM", 
+					"CFOP", 
+					"CST_ICMS", 
+					"VL_BC_ICMS", 
+					"ALIQ_ICMS", 
+					"VL_ICMS", 
+					"VL_BC_ICMS_ST", 
+					"VL_ICMS_ST",
+					"VL_IPI"],
+				"name": "C170 - Itens",
+				"data_source_id": "C170"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "C190 - Resumo Op",
+				"data_source_id": "C190"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "C197 - Ajuste doc fiscal",
+				"data_source_id": "C197"
+			},
+			{
+				"columns": ["__all__"],
+				"name": "E110 - Apuração do ICMS",
+				"data_source_id": "E110"
+			}
+		]
+			
+	}	
+	
+}

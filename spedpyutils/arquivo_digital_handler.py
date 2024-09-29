@@ -1,6 +1,5 @@
 import pandas as pd
 from xsdata.formats.dataclass.parsers import XmlParser
-from spedpyutils.biddings.export_layout import ExportLayout
 from collections import OrderedDict
 from sped.arquivos import ArquivoDigital
 from sped.registros import Registro
@@ -8,6 +7,7 @@ from sped.campos import Campo
 from tqdm import tqdm
 import importlib
 import locale
+import json
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -22,7 +22,7 @@ class ArquivoDigitalHandler:
 
     Args:
         arquivo_digital (ArquivoDigital): The digital file containing records to be processed.
-        schema (str): The schema definition used for processing the records.
+        layout (ExportLayout): The layout definition used for exporting the records.
 
     Attributes:
         get_dataframes (OrderedDict): Property that returns the constructed DataFrames.
@@ -33,10 +33,22 @@ class ArquivoDigitalHandler:
         handler.to_excel("output.xlsx")
     """
 
-    def __init__(self, arquivo_digital: ArquivoDigital, layout: ExportLayout):
+    def __init__(self, arquivo_digital: ArquivoDigital, config_file: str):
         self._dataframes = None
-        self._export_layout = layout
         self._arquivo_digital = arquivo_digital
+        self.__load_export_config(config_file)
+        
+        
+            
+    def __load_export_config(self, config_file):
+        
+        with open(config_file, 'r') as f:
+            self._config_file = json.load(f)
+            
+            self._data_source_list = self._config_file.get("data_source_list", [])
+            self._clazz_path = self._config_file.get("clazz_path", None)
+            self._spreadsheet = self._config_file.get("spreadsheet", [])
+
 
     @property
     def get_dataframes(self) -> OrderedDict:
@@ -51,17 +63,17 @@ class ArquivoDigitalHandler:
         It also handles hierarchical relationships between records.
 
         Args:
-            silent (bool): If True, suppresses progress output during processing. Defaults to True.
+            verbose (bool): If False, suppresses progress output during processing. Defaults to True.
 
         Returns:
             None: The method assigns the constructed DataFrames to the instance variable _dataframes.
 
         Examples:
-            handler.build_dataframes(silent=False)
+            handler.build_dataframes(verbose=False)
         """
         df = {}
         cache = {}
-        table_map = self.__create_table_map(self._export_layout)
+        table_map = self.__create_table_map()
 
         for registro in tqdm(self.__get_all_registros(), 
                             desc="processing dataframe", 
@@ -95,27 +107,28 @@ class ArquivoDigitalHandler:
     def __get_registro_value(self, registro: Registro, obj: any):
         return getattr(registro, obj.nome) if isinstance(obj, Campo) else str(obj)
 
-    def __create_table_map(self, layout: ExportLayout): 
+    def __create_table_map(self): 
         map = {}
-        for data_source in layout.data_source_config.data_source: 
+        for data_source in self._data_source_list: 
 
-            all_columns_dict = self.__get_all_cols_dict(data_source)   
+            all_columns_dict = self.__get_all_cols_dict(data_source['clazz'])   
 
             cols, idx_cols, idx_names = [], [], []
             cols = list(all_columns_dict.values())
-            if data_source.index != None:
-                idx_names = data_source.index.split("|")                
+
+            if 'index' in data_source.keys():
+                idx_names = data_source['index'].split("|")                
                 idx_cols.extend(all_columns_dict.get(idx) for idx in idx_names)
             
-            map[data_source.name] = (cols, idx_cols, data_source.parent)
+            map[data_source['id']] = (cols, idx_cols, data_source.get('parent', None))
 
         return map
 
-    def __get_all_cols_dict(self, data_source: ExportLayout.DataSourceConfig.DataSource):
+    def __get_all_cols_dict(self, data_source: str):
         dict = {}
         try:
-            modulo = importlib.import_module(f"{self._export_layout.data_source_config.clazz_path}.registros")
-            clazz = getattr(modulo, f"Registro{data_source.name}")
+            modulo = importlib.import_module(self._clazz_path)
+            clazz = getattr(modulo, data_source)
             for campo in getattr(clazz, 'campos'):
                 if campo.nome != 'REG':
                     dict[campo.nome] = campo
@@ -125,7 +138,7 @@ class ArquivoDigitalHandler:
             print(f"Erro: A classe '{clazz}' não foi encontrada no módulo '{modulo}'.")
         return dict
 
-    def to_excel(self, filename):
+    def to_excel(self, filename, verbose = True):
         """
         Exports the constructed DataFrames to an Excel file.
 
@@ -135,6 +148,7 @@ class ArquivoDigitalHandler:
 
         Args:
             filename (str): The name of the Excel file to which the data will be exported.
+            verbose (bool): If False, suppresses progress output during processing. Defaults to True.
 
         Raises:
             RuntimeError: If there is an error during the export process, a RuntimeError is raised 
@@ -146,11 +160,12 @@ class ArquivoDigitalHandler:
 
         try:
             with pd.ExcelWriter(filename) as writer:
-                for tab in tqdm(self._export_layout.tabs.tab, 
+                for tab in tqdm(self._spreadsheet.get("tabs", []),
                                 desc="exporting data", 
-                                colour="RED"):
-                    df = self._dataframes[tab.data_source] 
-                    df.to_excel(writer, index=False, sheet_name=tab.name, engine='openpyxl')
+                                colour="RED",
+                                disable=not verbose):
+                    df = self._dataframes[tab['data_source_id']] 
+                    df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')
 
         except Exception as ex:
             raise RuntimeError(
