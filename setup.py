@@ -1,11 +1,13 @@
 from setuptools import setup
 from setuptools import find_packages
 
+from spedpyutils import __version__
+
 with open("README.md", "r") as arq:
     readme = arq.read()
 
 setup(name='spedpyutils',
-    version='0.0.3',
+    version=__version__,
     license='MIT License',
     author='Ismael Nascimento',
     long_description=readme,
