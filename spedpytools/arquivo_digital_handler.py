@@ -6,6 +6,7 @@ from tqdm import tqdm
 import pandas as pd
 import importlib
 import json
+import itertools
 
 
 class ArquivoDigitalHandler:
@@ -33,8 +34,6 @@ class ArquivoDigitalHandler:
         self._dataframes = None
         self._arquivo_digital = arquivo_digital
         self.__load_export_config(config_file)
-        
-        
             
     def __load_export_config(self, config_file):
         
@@ -44,13 +43,32 @@ class ArquivoDigitalHandler:
             self._data_source_list = self._config_file.get("data_sources", {})
             self._clazz_path = self._config_file.get("clazz_path", None)
             self._spreadsheet = self._config_file.get("spreadsheet", [])
+            self._views = self._config_file.get("views", [])
+            self._indexes = {}
+
 
 
     @property
     def get_dataframes(self) -> OrderedDict:
         return self._dataframes
 
-    def build_dataframes(self, verbose=True):
+    def build_all(self, verbose: bool = False):
+        """
+        Retrieves the constructed DataFrames (datasources and views).
+
+        This property provides access to the internal dictionary of DataFrames that have been built 
+        from the digital file records. It allows other parts of the code to access the DataFrames 
+        without directly manipulating the internal state.
+
+        Returns:
+            OrderedDict: The dictionary containing the constructed DataFrames.
+        """
+        self._dataframes = {}
+        self.create_sources(verbose=verbose)
+        self.create_views(verbose=verbose)
+        return self._dataframes
+
+    def create_sources(self, verbose=True):
         """
         Builds a dictionary of pandas DataFrames from the records in the digital file.
 
@@ -65,55 +83,68 @@ class ArquivoDigitalHandler:
             None: The method assigns the constructed DataFrames to the instance variable _dataframes.
 
         Examples:
-            handler.build_dataframes(verbose=False)
+            handler.sources(verbose=False)
         """
-        df = {}
+        sources = {}
         cache = {}
-        table_map = self.__create_table_map()
+        source_map = self.__create_source_map()
 
         for registro in tqdm(self.__get_all_registros(), 
                             desc="processing dataframe", 
                             colour="RED",
                             disable=not verbose):
 
-            if registro.REG in table_map:
-                r_keys_cols = table_map[registro.REG][1]
-                r_keys_vals = [self.__get_registro_value(registro, kcol) for kcol in r_keys_cols]
-                if r_keys_cols:
-                    cache[registro.REG] = [r_keys_cols, r_keys_vals]
+            if registro.REG in source_map:
+                
 
-                r_parent = table_map[registro.REG][2]
-                r_cols = [registro.REG] + table_map[registro.REG][0]
-                r_vals = [self.__get_registro_value(registro, col) for col in r_cols]
-                while r_parent:
-                    r_cols = [r_parent] + cache[r_parent][0] + r_cols
-                    r_vals = [r_parent] + cache[r_parent][1] + r_vals
-                    r_parent = table_map[r_parent][2]
+                cols = list(source_map[registro.REG][0])
+                cols_dict = source_map[registro.REG][1]
+                parent = source_map[registro.REG][2]
+                
+                vals = [self.__get_column_value(registro, col, cols_dict) for col in cols]
+                cache[registro.REG] = vals
+                
+                while parent:
+                    vals = vals + cache[parent]
+                    cols += [f'{parent}.{parent_col}' for parent_col in source_map[parent][0]]      
+                    parent = source_map[parent][2]           
+                
+                if registro.REG not in sources:
+                    sources[registro.REG] = pd.DataFrame(columns=cols)
+                    sources[registro.REG] = sources[registro.REG].astype(self.__get_cols_dtypes(cols_dict)) # Definir que campos numericos sejam sempre float 
 
-                if registro.REG not in df:
-                    df[registro.REG] = pd.DataFrame(columns=self.__get_cols_names(r_cols))
+                sources[registro.REG].loc[len(sources[registro.REG])] = vals
+                
+        self._dataframes = sources
 
-                df[registro.REG].loc[len(df[registro.REG])] = r_vals
 
-        self._dataframes = df
+    def __get_column_value(self, registro: Registro, col: str, cols_dict: dict):
+        if col in cols_dict:
+            return getattr(registro, cols_dict[col].nome)
+        else:
+            return self.__get_row_id(registro.REG) if col == '__rowid__' else col
 
-    def __get_cols_names(self, cols: any):
-        return [col.nome if isinstance(col, Campo) else col for col in cols]
+    def __get_row_id(self, idx: str):
+        if idx in self._indexes:
+            row_id = self._indexes[idx] 
+            return next(row_id)
+        else:
+            self._indexes[idx] = itertools.count(start=1)
+            return next(self._indexes[idx])
 
-    def __get_registro_value(self, registro: Registro, obj: any):
-        return getattr(registro, obj.nome) if isinstance(obj, Campo) else str(obj)
 
-    def __create_table_map(self): 
+    def __create_source_map(self): 
         map = {}
         for data_src_id in self._data_source_list: 
             data_source = self._data_source_list.get(data_src_id)
-            all_columns_dict = self.__get_all_cols_dict(data_source)   
-            cols = list(all_columns_dict.values())
+            cols_dict = self.__get_all_cols_dict(data_source)   
+            cols = list(cols_dict.keys())
+            idx_names = data_source.get('index', '__rowid__').split("|")
+                        
+            if '__rowid__' in idx_names:
+                cols = ['__rowid__'] if cols == [None] else ['__rowid__'] + cols
 
-            idx_names = data_source.get('index', '').split("|")
-            idx_cols = [all_columns_dict.get(idx) for idx in idx_names if idx]
-
-            map[data_src_id] = (cols, idx_cols, data_source.get('parent', None))
+            map[data_src_id] = (cols, cols_dict, data_source.get('parent', None))
 
         return map
 
@@ -138,6 +169,39 @@ class ArquivoDigitalHandler:
                 dtypes[col_name] = 'float64'
                 
         return dtypes
+    
+    def create_views(self, verbose=True):
+
+        for view in tqdm(
+                self._views,
+                desc="gererating data views", 
+                colour="RED",
+                disable=not verbose
+            ):
+            
+            view_name = view.get('name')
+            ldata_source = view.get('data_source', '')
+            cols = view.get('columns')
+
+            left_df = self._dataframes.get(ldata_source)
+
+            for join in view.get('joins', []):
+                rdata_source = join.get('data_source', '')
+                right_df = self._dataframes.get(rdata_source)
+                right_df.columns = [f'{rdata_source}.{col}' for col in right_df.columns]
+                joinned_df = pd.merge(
+                    left=left_df,
+                    right=right_df, 
+                    left_on=join.get('left_on', f'{rdata_source}.__rowid__'), 
+                    right_on=join.get('right_on', '__rowid__'),
+                    how=join.get('how', 'inner')) 
+                
+                left_df = joinned_df                                   
+
+            self._dataframes[view_name] = (left_df if cols == ['__all__'] else left_df[cols])
+            
+
+        
 
     def to_excel(self, filename, verbose = True):
         """
@@ -165,12 +229,10 @@ class ArquivoDigitalHandler:
                                 desc="exporting data", 
                                 colour="RED",
                                 disable=not verbose):
-                    data_source = tab.get('data_source')
+                    view_name = tab.get('view')
                     
-                    if data_source in self._dataframes.keys():
-                        df = self._dataframes[data_source] 
-                        cols = self.__get_all_cols_dict(self._data_source_list.get(data_source))                    
-                        df = df.astype(self.__get_cols_dtypes(cols)) # Definir que campos numericos sejam sempre float   
+                    if view_name in self._dataframes.keys():
+                        df = self._dataframes[view_name] 
                         df.to_excel(writer, index=False, sheet_name=tab['name'], engine='openpyxl')  
 
         except Exception as ex:

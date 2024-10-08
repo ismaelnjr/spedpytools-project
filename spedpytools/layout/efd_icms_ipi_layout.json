@@ -4,104 +4,116 @@
 	"data_sources": {
 		"0000" :
 			{		
-				"clazz": "Registro0000",
-				"description": "Abertura do Arquivo Digital",
-				"index": "DT_INI|DT_FIN"
+				"clazz": "Registro0000"
 			},
 		"0150":
 			{
 				"clazz": "Registro0150",
-				"description": "Participantes",
-				"parent": "0000",
 				"index": "COD_PART"
 			},
 		"0200":
 			{
 				"clazz": "Registro0200",
-				"description": "Produtos",
-				"parent": "0000",
 				"index": "COD_ITEM"
 			},
 		"C100":
 			{
-				"clazz": "RegistroC100",
-				"description": "E_S",
-				"parent": "0000",
-				"index": "COD_MOD|SER|NUM_DOC"
+				"clazz": "RegistroC100"
 			},
 		"C170":
 			{
 				"clazz": "RegistroC170",
-				"description": "Itens",
 				"parent": "C100"
 			},
 		"C190":
 			{
 				"clazz": "RegistroC190",
-				"description": "Resumo Op",
 				"parent": "C100"
 			},
 		"C197":
 			{
 				"clazz": "RegistroC197",
-				"description": "Ajuste doc fiscal",
 				"parent": "C100"
 			},
 		"E100":
 			{
-				"clazz": "RegistroE100",
-				"description": "Apuração ICMS",
-				"index": "DT_INI|DT_FIN"
+				"clazz": "RegistroE100"
 			},
 		"E110":
 			{
 				"clazz": "RegistroE110",
-				"description": "Apuração do ICMS - Operações Próprias",
 				"parent": "E100"
 			}		
 	},
+	"views": [
+		{
+			"name": "Produtos",
+			"data_source": "0200",
+			"columns": [
+				"COD_ITEM",
+				"DESCR_ITEM",
+				"COD_NCM",
+				"CEST"
+			]			
+		},
+		{
+			"name": "Participantes",
+			"data_source": "0150",
+			"columns": ["__all__"]			
+		},
+		{
+			"name": "E_S",
+			"data_source": "C170",
+			"columns": [
+				"C100.IND_OPER", 
+				"C100.IND_EMIT", 
+				"C100.COD_PART", 
+				"C100.COD_MOD", 
+				"C100.COD_SIT", 
+				"C100.SER", 
+				"C100.NUM_DOC", 
+				"C100.DT_DOC", 
+				"C100.VL_DOC",
+				"NUM_ITEM", 
+				"COD_ITEM",
+				"0200.COD_NCM",
+				"QTD", 
+				"UNID", 
+				"VL_ITEM", 
+				"CFOP", 
+				"CST_ICMS", 
+				"VL_BC_ICMS", 
+				"ALIQ_ICMS", 
+				"VL_ICMS", 
+				"VL_BC_ICMS_ST", 
+				"VL_ICMS_ST",
+				"VL_IPI"
+			],			
+			"joins": 
+			[
+				{
+					"data_source": "0200",
+					"left_on": "COD_ITEM",
+					"right_on": "0200.COD_ITEM",
+					"how": "inner"
+				}
+			]
+		}
+	],
 	"spreadsheet": {
 		"tabs": [
 			{
-				"columns": ["__all__"],
-				"name": "0000 - Abertura",
-				"data_source": "0000"
+				"view": "Produtos",
+				"name": "0200 - Produtos"
 			},
 			{
-				"columns": ["__all__"],
-				"name": "0150 - Participantes",
-				"data_source": "0150"
+				"view": "Participantes",
+				"name": "0150 - Participantes"
 			},
 			{
-				"columns": ["__all__"],
-				"name": "0200 - Produtos",
-				"data_source": "0200"
-			},
-			{
-				"columns": ["__all__"],
-				"name": "C100 - E_S",
-				"data_source": "C100"
-			},
-			{
-				"columns": ["__all__"],
-				"name": "C170 - Itens",
-				"data_source": "C170"
-			},
-			{
-				"columns": ["__all__"],
-				"name": "C190 - Resumo Op",
-				"data_source": "C190"
-			},
-			{
-				"columns": ["__all__"],
-				"name": "C197 - Ajuste doc fiscal",
-				"data_source": "C197"
-			},
-			{
-				"columns": ["__all__"],
-				"name": "E110 - Apuração do ICMS",
-				"data_source": "E110"
-			}
+				"view": "E_S",
+				"name": "C100 - E_S"
+			}			
 		]
 			
 	}	

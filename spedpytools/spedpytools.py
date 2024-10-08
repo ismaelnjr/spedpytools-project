@@ -44,7 +44,7 @@ class SpedPyTools:
                 filename (str): The name of the Excel file to which the EFD data will be exported.
  
             """
-            self._handler.build_dataframes(verbose=verbose)
+            self._handler.build_all(verbose)
             self._handler.to_excel(filename, verbose=verbose)
     
     class NFeFile(NFeArquivoDigital):
@@ -79,5 +79,5 @@ class SpedPyTools:
                 filename (str): The name of the Excel file to which the NFe data will be exported.
  
             """
-            self._handler.build_dataframes(verbose=verbose)
+            self._handler.build_all(verbose)
             self._handler.to_excel(filename, verbose=verbose)
