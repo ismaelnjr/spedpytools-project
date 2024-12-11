@@ -1,0 +1,69 @@
+{
+	"name": "nfe",
+	"clazz_path": "sped.nfe.registros",
+	"data_sources": {
+		"N100":
+			{
+				"clazz": "RegistroN100"
+			},
+		"N140":
+			{
+				"clazz": "RegistroN140",
+				"parent": "N100"
+			},
+		"N141":
+			{
+				"clazz": "RegistroN141",
+				"parent": "N100"
+			},
+		"N170":
+			{
+				"clazz": "RegistroN170",
+				"parent": "N100"
+			},
+		"Z100":
+			{
+				"clazz": "RegistroZ100"
+			}
+	},
+	"views": [	
+		{
+			"name": "E_S",
+			"data_source": "N170",
+			"columns": ["__all__"]
+		},	
+		{
+			"name": "DUP",
+			"data_source": "N141",
+			"columns": ["N141.NUM_DUP",
+						"N141.DT_VENC",
+						"N141.VLR_DUP",
+						"N100.CNPJ_EMIT",
+						"N100.NOME_EMIT"]			
+		},
+		{
+			"name": "EVENTOS",
+			"data_source": "Z100",
+			"columns": ["__all__"]			
+		}
+		
+	],
+	"spreadsheet": {
+		"tabs": [
+			{
+				"name": "Listagem NFe",
+				"view": "E_S"
+			},
+			{				
+				"name": "Duplicatas",
+				"view": "DUP"
+			},	
+			{				
+				"name": "Eventos",
+				"view": "EVENTOS"
+			}		
+		]
+			
+	}	
+	
+}

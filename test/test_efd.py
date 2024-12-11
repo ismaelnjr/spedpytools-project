@@ -8,7 +8,8 @@ os.chdir(test_root)
 sys.path.insert(0, os.path.dirname(test_root))
 sys.path.insert(0, test_root)
 
-from spedpytools import spedpytools
+from spedpytools import ArquivoDigitalSchema, ArquivoDigitalHandler
+from sped.efd.icms_ipi.arquivos import ArquivoDigital as ArquivoDigital
 
 class TestEFD(unittest.TestCase):
 
@@ -25,7 +26,7 @@ class TestEFD(unittest.TestCase):
 |0150|FOR000028800|TRANSPORTADORA Y23 EIRELI|1058|39848198000101||0039007510061|3125101||RUA ANTONIO MOREIRA FILHO|50||DOS TENENTES|
 |0150|FOR000030040|PELOG ARMAZENS GERAIS LTDA.|01058|03986934000132||206644676115|3505708||AVENIDA MARCOS PENTEADO DE ULHOA RODRIGU|491||TAMBORE|
 |0150|FOR000026707|EFIZI AZU COMERCIO LTDA|1058|34229157000105||083582452|3205002||RUA 7 A|69|SETOR B SALA 1|CIVIT II|
-|0200|DESP00191|BIODIGESTOR 700L - FORTLEV|||156|07|||00||18||
+|0200|DESP00191|BIODIGESTOR 700L - FORTLEV|||156|07|99999999||00||18||
 |0200|78985640447416|QI10WG CARREGADOR DE INDUCAO PARA APARELHOS CELULARES COM 5W NF Ent: 00054862F1|||1|00|85044010||85||18,00||
 |C100|1|0|CLI000000503|55|00|001|38111|31220737008145000149550010000381111212144153|11072022|11072022|4155,75|1|0|0|3582,24|0|0|0|0|3582,24|429,87|5574,32|573,51|0|52,01|239,58|0|0|
 |C190|010|5401|12|4155,75|3582,24|429,87|5574,32|573,51|0|0||
@@ -42,12 +43,14 @@ class TestEFD(unittest.TestCase):
 |D100|0|1|FOR000028800|57|00|001||870|31220739848198000101570010000008701000000007|05072022|13072022|0||1851,86|0|9|1851,86|0|0|1851,86||4214|3125101|3205101|
 |D190|000|2352|0|1851,86|0|0|0||
 """
-        with open('efd.txt', 'w') as f:
+        with open('output\efd_icms_ipi.txt', 'w') as f:
             f.write(txt)        
         
-        arq = spedpytools.EFDFile()
-        arq.readfile("efd.txt")
-        arq.to_excel("output.xlsx")
+        arq = ArquivoDigital()
+        arq.readfile('output\efd_icms_ipi.txt')
+        schema = ArquivoDigitalSchema('etc\schema_efd_icms_ipi.json')
+        export = ArquivoDigitalHandler(schema=schema, arquivo_digital=arq)        
+        export.to_excel("output\efd_icms_ipi_output.xlsx")
                
 if __name__ == '__main__':
     unittest.main()

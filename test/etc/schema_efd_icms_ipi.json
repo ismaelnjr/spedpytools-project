@@ -1,0 +1,121 @@
+{
+	"name": "efd_icms_ipi",
+	"clazz_path": "sped.efd.icms_ipi.registros",
+	"data_sources": {
+		"0000" :
+			{		
+				"clazz": "Registro0000"
+			},
+		"0150":
+			{
+				"clazz": "Registro0150",
+				"index": "COD_PART"
+			},
+		"0200":
+			{
+				"clazz": "Registro0200",
+				"index": "COD_ITEM"
+			},
+		"C100":
+			{
+				"clazz": "RegistroC100"
+			},
+		"C170":
+			{
+				"clazz": "RegistroC170",
+				"parent": "C100"
+			},
+		"C190":
+			{
+				"clazz": "RegistroC190",
+				"parent": "C100"
+			},
+		"C197":
+			{
+				"clazz": "RegistroC197",
+				"parent": "C100"
+			},
+		"E100":
+			{
+				"clazz": "RegistroE100"
+			},
+		"E110":
+			{
+				"clazz": "RegistroE110",
+				"parent": "E100"
+			}		
+	},
+	"views": [
+		{
+			"name": "Produtos",
+			"data_source": "0200"
+		},
+		{
+			"name": "Participantes",
+			"data_source": "0150"
+		},
+		{
+			"name": "E_S",
+			"data_source": "C170",
+			"joins": 
+			[
+				{
+					"data_source": "0200",
+					"left_on": "C170.COD_ITEM",
+					"right_on": "0200.COD_ITEM",
+					"how": "inner"
+				}
+			]
+		}
+	],
+	"spreadsheet": {
+		"tabs": [
+			{
+				"view": "Produtos",
+				"name": "0200 - Produtos",	
+				"columns": [
+					"0200.COD_ITEM",
+					"0200.DESCR_ITEM",
+					"0200.COD_NCM",
+					"0200.CEST"
+				]	
+			},
+			{
+				"view": "Participantes",
+				"name": "0150 - Participantes"
+			},
+			{
+				"view": "E_S",
+				"name": "C170 - E_S",
+				"columns": [
+					"C100.IND_OPER", 
+					"C100.IND_EMIT", 
+					"C100.COD_PART", 
+					"C100.COD_MOD", 
+					"C100.COD_SIT", 
+					"C100.SER", 
+					"C100.NUM_DOC", 
+					"C100.DT_DOC", 
+					"C100.VL_DOC",
+					"C170.NUM_ITEM", 
+					"C170.COD_ITEM",
+					"0200.COD_NCM",
+					"C170.QTD", 
+					"C170.UNID", 
+					"C170.VL_ITEM", 
+					"C170.CFOP", 
+					"C170.CST_ICMS", 
+					"C170.VL_BC_ICMS", 
+					"C170.ALIQ_ICMS", 
+					"C170.VL_ICMS", 
+					"C170.VL_BC_ICMS_ST", 
+					"C170.VL_ICMS_ST",
+					"C170.VL_IPI"
+				]
+
+			}			
+		]
+			
+	}	
+	
+}

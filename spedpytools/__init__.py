@@ -1,3 +1,4 @@
-__version__ = '0.0.7'
+__version__ = '0.1.0'
 
-from .spedpytools import SpedPyTools as spedpytools
+from .efd_handler import ArquivoDigitalHandler
+from .efd_handler import ArquivoDigitalSchema

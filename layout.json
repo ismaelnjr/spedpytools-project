@@ -45,61 +45,61 @@
 				"parent": "E100"
 			}		
 	},
-	"views": [
-		{
-			"name": "Produtos",
-			"data_source": "0200",
-			"columns": [
-				"COD_ITEM",
-				"DESCR_ITEM",
-				"COD_NCM",
-				"CEST"
-			]			
-		},
-		{
-			"name": "Participantes",
-			"data_source": "0150",
-			"columns": ["__all__"]			
-		},
-		{
-			"name": "E_S",
-			"data_source": "C170",
-			"columns": [
-				"C100.IND_OPER", 
-				"C100.IND_EMIT", 
-				"C100.COD_PART", 
-				"C100.COD_MOD", 
-				"C100.COD_SIT", 
-				"C100.SER", 
-				"C100.NUM_DOC", 
-				"C100.DT_DOC", 
-				"C100.VL_DOC",
-				"NUM_ITEM", 
-				"COD_ITEM",
-				"0200.COD_NCM",
-				"QTD", 
-				"UNID", 
-				"VL_ITEM", 
-				"CFOP", 
-				"CST_ICMS", 
-				"VL_BC_ICMS", 
-				"ALIQ_ICMS", 
-				"VL_ICMS", 
-				"VL_BC_ICMS_ST", 
-				"VL_ICMS_ST",
-				"VL_IPI"
-			],			
-			"joins": 
-			[
-				{
-					"data_source": "0200",
-					"left_on": "COD_ITEM",
-					"right_on": "0200.COD_ITEM",
-					"how": "inner"
-				}
-			]
-		}
-	],
+	"views": {
+		"Produtos":
+			{
+				"data_source": "0200",
+				"columns": [
+					"COD_ITEM",
+					"DESCR_ITEM",
+					"COD_NCM",
+					"CEST"
+				]			
+			},
+		"Participantes":
+			{
+				"data_source": "0150",
+				"columns": ["__all__"]			
+			},
+		"E_S":
+			{
+				"data_source": "C170",
+				"columns": [
+					"C100.IND_OPER", 
+					"C100.IND_EMIT", 
+					"C100.COD_PART", 
+					"C100.COD_MOD", 
+					"C100.COD_SIT", 
+					"C100.SER", 
+					"C100.NUM_DOC", 
+					"C100.DT_DOC", 
+					"C100.VL_DOC",
+					"NUM_ITEM", 
+					"COD_ITEM",
+					"0200.COD_NCM",
+					"QTD", 
+					"UNID", 
+					"VL_ITEM", 
+					"CFOP", 
+					"CST_ICMS", 
+					"VL_BC_ICMS", 
+					"ALIQ_ICMS", 
+					"VL_ICMS", 
+					"VL_BC_ICMS_ST", 
+					"VL_ICMS_ST",
+					"VL_IPI"
+				],			
+				"joins": 
+				[
+					{
+						"data_source": "0200",
+						"left_on": "COD_ITEM",
+						"right_on": "0200.COD_ITEM",
+						"how": "inner"
+					}
+				]
+			}
+	},
 	"spreadsheet": {
 		"tabs": [
 			{
